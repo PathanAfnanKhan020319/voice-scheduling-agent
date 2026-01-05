@@ -1,0 +1,96 @@
+{
+  "name": "Voice Scheduling Agent",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a friendly and professional scheduling assistant named 'Scheduler AI'. Your job is to help users schedule meetings by collecting their information and creating calendar events.\n\n## Conversation Flow:\n1. **Greet warmly**: Start with a friendly greeting and introduce yourself\n2. **Collect name**: Ask for the user's name\n3. **Collect date & time**: Ask when they'd like to schedule the meeting\n   - Be flexible with date formats (e.g., 'tomorrow at 2pm', 'January 15th at 10am', 'next Monday at 3pm')\n   - If unclear, ask for clarification\n4. **Optional title**: Ask if they'd like to give the meeting a title/subject\n5. **Confirm details**: Summarize all information and ask for confirmation\n6. **Create event**: Once confirmed, call the createCalendarEvent function\n7. **Provide confirmation**: Tell them the event was created successfully\n\n## Important Guidelines:\n- Be conversational and natural - avoid sounding robotic\n- Parse dates flexibly using common expressions\n- Use the current date (2026-01-05) as reference for relative dates like 'tomorrow'\n- Always confirm ALL details before creating the event\n- If user wants to change anything, accommodate their request\n- Keep responses concise (2-3 sentences max per turn)\n- Show enthusiasm when the meeting is successfully scheduled\n- If there's an error, apologize and offer to try again\n\n## Date/Time Parsing Examples:\n- 'tomorrow at 3pm' → 2026-01-06T15:00:00+05:30\n- 'next Monday at 10am' → 2026-01-12T10:00:00+05:30\n- 'January 20th at 2:30pm' → 2026-01-20T14:30:00+05:30\n\nAlways use 24-hour format in ISO 8601 when calling the function."
+      }
+    ]
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "rachel",
+    "stability": 0.5,
+    "similarityBoost": 0.75,
+    "optimizeStreamingLatency": 3
+  },
+  "firstMessage": "Hi! I'm your scheduling assistant. I'm here to help you book a meeting. To get started, may I have your name?",
+  "functions": [
+    {
+      "name": "createCalendarEvent",
+      "description": "Creates a Google Calendar event with the provided details. Call this function ONLY after confirming all details with the user and receiving their explicit confirmation.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "attendeeName": {
+            "type": "string",
+            "description": "The full name of the person scheduling the meeting"
+          },
+          "startDateTime": {
+            "type": "string",
+            "description": "The start date and time in ISO 8601 format with timezone (e.g., '2026-01-15T14:00:00+05:30'). Use timezone +05:30 for India."
+          },
+          "endDateTime": {
+            "type": "string",
+            "description": "The end date and time in ISO 8601 format. Optional - defaults to 1 hour after start time if not provided."
+          },
+          "summary": {
+            "type": "string",
+            "description": "The title or summary of the meeting. Optional - defaults to 'Meeting with [attendeeName]' if not provided."
+          }
+        },
+        "required": [
+          "attendeeName",
+          "startDateTime"
+        ]
+      },
+      "serverUrl": "https://your-backend-url.railway.app/webhook/vapi",
+      "serverUrlSecret": "your-optional-secret-here"
+    }
+  ],
+  "endCallMessage": "Thank you for using the scheduling service. Have a great day!",
+  "endCallFunctionEnabled": true,
+  "dialKeypadFunctionEnabled": false,
+  "recordingEnabled": true,
+  "serverMessages": [
+    "conversation-update",
+    "function-call",
+    "end-of-call-report",
+    "status-update"
+  ],
+  "silenceTimeoutSeconds": 30,
+  "maxDurationSeconds": 600,
+  "backgroundSound": "office",
+  "backchannelingEnabled": true,
+  "backgroundDenoisingEnabled": true,
+  "responseDelaySeconds": 0.4,
+  "llmRequestDelaySeconds": 0.1,
+  "numWordsToInterruptAssistant": 2,
+  "metadata": {
+    "purpose": "voice-scheduling-agent",
+    "version": "1.0.0",
+    "createdFor": "vikara-ai-assignment"
+  },
+  "clientMessages": [
+    "conversation-update",
+    "function-call",
+    "hang",
+    "metadata",
+    "model-output",
+    "speech-update",
+    "status-update",
+    "transcript",
+    "tool-calls",
+    "user-interrupted",
+    "voice-input"
+  ],
+  "serverUrlSecret": null,
+  "analysisPlan": {
+    "summaryPrompt": "Summarize the call including: attendee name, scheduled date/time, and meeting title if provided.",
+    "structuredDataPrompt": "Extract: attendee_name, meeting_date, meeting_time, meeting_title, event_created (boolean)"
+  }
+}
